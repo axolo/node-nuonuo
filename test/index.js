@@ -9,6 +9,7 @@ const config = {
   appSecret: 'sandbox',
   userTax: 'user-tax-number',
   isv: false,
+  okCode: '0000',
   accessTokenCache: {
     store: 'memory',
     prefix: 'nuonuo_',
@@ -18,14 +19,14 @@ const config = {
 };
 
 const nuonuo = new Nuonuo(config);
-// const { appKey, accessTokenCache } = nuonuo.config;
-
-// nuonuo.getMerchantToken(appKey, appSecret).then(res => console.log(res));
-
-// const cacheKey = [ accessTokenCache.prefix, appKey ].join('');
-// const cacheVal = { access_token: 'ACCESS_TOKEN', expires_in: 86400, created_at: Date.now() };
-// nuonuo.getCache(cacheKey).then(res => console.log(res));
-// nuonuo.setCache(cacheKey, cacheVal, accessTokenCache).then(res => console.log(res));
+const { appKey, appSecret } = nuonuo.config;
 
 const senid = nuonuo.senid();
 console.log({ senid });
+
+// const cacheKey = [ accessTokenCache.prefix, appKey ].join('');
+// const cacheVal = { access_token: 'ACCESS_TOKEN', expires_in: 86400 };
+// nuonuo.getCache(cacheKey).then(res => console.log({ getCache: res }));
+// nuonuo.setCache(cacheKey, cacheVal, accessTokenCache).then(res => console.log({ setCache: res }));
+
+nuonuo.getMerchantToken(appKey, appSecret).then(res => console.log({ getMerchantToken: res }));
