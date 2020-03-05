@@ -1,0 +1,39 @@
+{
+  "name": "@axolo/node-nuonuo",
+  "version": "0.0.1",
+  "description": "Nuonuo open api for Node.js",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "files": [
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axolo/node-nuonuo.git"
+  },
+  "keywords": [
+    "nodenuonuo",
+    "js nuonuo",
+    "nuonuo",
+    "invoice",
+    "诺诺发票",
+    "电子发票",
+    "诺诺网"
+  ],
+  "author": "Yueming Fang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/axolo/node-nuonuo/issues"
+  },
+  "homepage": "https://github.com/axolo/node-nuonuo#readme",
+  "dependencies": {
+    "cache-manager": "^3.1.0",
+    "nanoid": "^2.1.11",
+    "urllib": "^2.34.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  }
+}
