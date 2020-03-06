@@ -11,6 +11,7 @@ const config = {
   appKey: 'sandbox',
   appSecret: 'sandbox',
   userTax: 'user-tax-number',
+  okCode: '0000',
   accessTokenCache: {
     store: 'memory',
     prefix: 'nuonuo',

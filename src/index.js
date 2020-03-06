@@ -255,9 +255,12 @@ class Nuonuo {
    * @memberof Nuonuo
    */
   async exec(method, content, userTax) {
-    const { apiUrl, appKey, appSecret, isv } = this.config;
-    const accessToken = isv ? await this.getIsvToken() : await this.getMerchantToken();
+    const { apiUrl, appKey, appSecret, redirectUri, isv, okCode } = this.config;
     if (!userTax) userTax = this.config.userTax;
+    const code = okCode;
+    const { access_token: accessToken } = isv
+      ? await this.getIsvToken(appKey, appSecret, code, userTax, redirectUri)
+      : await this.getMerchantToken(appKey, appSecret);
     const senid = this.senid();
     const result = await this.sendRequest(apiUrl, senid, appKey, appSecret, accessToken, userTax, method, content);
     return result;

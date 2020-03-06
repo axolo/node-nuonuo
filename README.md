@@ -25,9 +25,10 @@ const config = {
   apiUrl: 'https://sandbox.nuonuocs.cn/open/v1/services',
   appKey: 'sandbox',
   appSecret: 'sandbox',
-  userTax: 'user-tax-number',
+  userTax: 'user-tax-number', // dynamic if isv is true
+  okCode: '0000',
   accessTokenCache: {
-    store: 'memory',
+    store: 'memory', // if use Redis see cache-manager
     prefix: 'nuonuo',
     ttl: 86400, // 24 hours
     quota: [ 50, 2592000 ], // 50 times / 30 days
@@ -54,5 +55,9 @@ Nuonuo instance
 - method: Nuonuo API method name
 - content: Nuouo private params, JSON.stringify automatic
 - userTax: Nuonuo userTax, required to ISV and optional to Merchant
+
+#### return
+
+Nuonuo response
 
 [Nuonuo]: https://open.nuonuo.com/
