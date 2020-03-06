@@ -34,6 +34,7 @@
     "uuid": "^7.0.2"
   },
   "devDependencies": {
-    "eslint": "^6.8.0"
+    "eslint": "^6.8.0",
+    "eslint-config-egg": "^8.0.1"
   }
 }

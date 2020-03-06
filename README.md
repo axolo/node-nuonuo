@@ -14,14 +14,12 @@ npm install @axolo/node-nuonuo --save
 npm run test
 ```
 
-> use by program see in [test](./test/index.js)
-
 ## config
 
 ```js
 const config = {
   isv: false,
-  redirectUri: 'http://localhost:7001/nuonuo/redirect', // if isv is true
+  redirectUri: 'http://localhost:7001/nuonuo/redirect', // required if isv is true
   authTokenUrl: 'https://open.nuonuo.com/accessToken',
   authCodeUrl: 'https://open.nuonuo.com/authorize',
   apiUrl: 'https://sandbox.nuonuocs.cn/open/v1/services',
@@ -39,7 +37,22 @@ const config = {
 
 ## API
 
-TODO
+### construct(config)
 
+#### params
+
+- config: Nuonuo invoice config
+
+#### return
+
+Nuonuo instance
+
+### exec(method, content, userTax)
+
+#### params
+
+- method: Nuonuo API method name
+- content: Nuouo private params, JSON.stringify automatic
+- userTax: Nuonuo userTax, required to ISV and optional to Merchant
 
 [Nuonuo]: https://open.nuonuo.com/

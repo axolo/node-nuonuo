@@ -80,7 +80,8 @@ class Nuonuo {
       grant_type: grantType,
     };
     const { data: token } = await curl(authTokenUrl, { method: 'POST', data, dataType: 'json' });
-    if (token && !token.error) await this.setCache(cacheKey, token, accessTokenCache);
+    if (!token || token.error) return token;
+    await this.setCache(cacheKey, token, accessTokenCache);
     return token;
   }
 
@@ -99,7 +100,7 @@ class Nuonuo {
    * @param {string} appKey         应用ID
    * @param {string} appSecret      应用密钥
    * @param {string} code           授权码
-   * @param {string} taxnum         用户税号
+   * @param {string} userTax        用户税号
    * @param {string} redirectUri    重定向地址
    * @param {string} [grantType='authorization_code'] 授权方式
    * @return {object} 令牌
@@ -120,7 +121,8 @@ class Nuonuo {
       taxNum: userTax,
     };
     const { data: token } = await curl(authTokenUrl, { method: 'POST', data, dataType: 'json' });
-    if (token && !token.error) await this.setCache(cacheKey, token, accessTokenCache);
+    if (!token || token.error) return token;
+    await this.setCache(cacheKey, token, accessTokenCache);
     return token;
   }
 
@@ -178,7 +180,7 @@ class Nuonuo {
   /**
    * **获取32位随机码**
    *
-   * @returns {string}  32位随机码
+   * @return {string}  32位随机码
    * @memberof Nuonuo
    */
   senid() {
@@ -200,8 +202,8 @@ class Nuonuo {
   getSign(path, appSecret, appKey, senid, nonce, body, timestamp) {
     const pieces = path.split('/');
     const signStr = `a=${pieces[3]}&l=${pieces[2]}&p=${pieces[1]}&k=${appKey}&i=${senid}&n=${nonce}&t=${timestamp}&f=${body}`;
-    const sign = crypto.createHmac('sha1', appSecret).update(signStr).digest('base64').toString();
-    console.log(__filename, sign);
+    const hmac = crypto.createHmac('sha1', appSecret).update(signStr).digest('base64');
+    const sign = hmac.toString();
     return sign;
   }
 
@@ -220,11 +222,11 @@ class Nuonuo {
    * @memberof Nuonuo
    */
   async sendRequest(requestUrl, senid, appKey, appSecret, accessToken, userTax, method, content) {
-    const timestamp = Math.round(Date.now()/1000); // 时间戳
+    const timestamp = Math.round(Date.now() / 1000); // 时间戳
     const nonce = Math.floor(Math.random(1000000000)); // 随机正整数
     const { pathname } = new URL(requestUrl);
-    const contentString = JSON.stringify(content);
-    const sign = this.getSign(pathname, appSecret, appKey, senid, nonce, contentString, timestamp); // 签名
+    const jsonContent = JSON.stringify(content);
+    const sign = this.getSign(pathname, appSecret, appKey, senid, nonce, jsonContent, timestamp); // 签名
     const url = `${requestUrl}?senid=${senid}&nonce=${nonce}&timestamp=${timestamp}&appkey=${appKey}`;
     const headers = {
       'Content-type': 'application/json',
@@ -236,7 +238,7 @@ class Nuonuo {
     const result = this.curl(url, {
       method: 'POST',
       headers,
-      data: JSON.stringify(content), // NOTE: Will be stringify automatically.
+      data: jsonContent,
       dataType: 'json',
     });
     return result;
@@ -255,11 +257,11 @@ class Nuonuo {
   async exec(method, content, userTax) {
     const { apiUrl, appKey, appSecret, isv } = this.config;
     const accessToken = isv ? await this.getIsvToken() : await this.getMerchantToken();
-    if(!userTax) userTax = this.config.userTax;
+    if (!userTax) userTax = this.config.userTax;
     const senid = this.senid();
     const result = await this.sendRequest(apiUrl, senid, appKey, appSecret, accessToken, userTax, method, content);
     return result;
   }
 }
 
-module.exports =Nuonuo;
+module.exports = Nuonuo;
