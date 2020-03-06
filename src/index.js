@@ -1,9 +1,9 @@
 'use strict';
 
 const crypto = require('crypto');
-const nanoid = require('nanoid');
 const cacheManager = require('cache-manager');
 const urllib = require('urllib');
+const uuid = require('uuid');
 
 class Nuonuo {
   /**
@@ -65,7 +65,7 @@ class Nuonuo {
    * @memberof Nuonuo
    */
   senid() {
-    return crypto.createHash('md5').update(nanoid()).digest('hex');
+    return uuid.v4().replace(/-/gi, '');
   }
 
   /**

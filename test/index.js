@@ -29,4 +29,4 @@ console.log({ senid });
 // nuonuo.getCache(cacheKey).then(res => console.log({ getCache: res }));
 // nuonuo.setCache(cacheKey, cacheVal, accessTokenCache).then(res => console.log({ setCache: res }));
 
-nuonuo.getMerchantToken(appKey, appSecret).then(res => console.log({ getMerchantToken: res }));
+// nuonuo.getMerchantToken(appKey, appSecret).then(res => console.log({ getMerchantToken: res }));
