@@ -59,6 +59,123 @@ class Nuonuo {
   }
 
   /**
+   * **商家获取令牌**
+   *
+   * @see https://open.nuonuo.com/#/dev-doc/auth-business
+   * @param {string} appKey     应用ID
+   * @param {string} appSecret  应用密钥
+   * @param {string} [grantType='client_credentials'] 授权方式
+   * @return {object} 令牌
+   * @memberof Nuonuo
+   */
+  async getMerchantToken(appKey, appSecret, grantType = 'client_credentials') {
+    const { config, curl } = this;
+    const { authTokenUrl, accessTokenCache, userTax } = config;
+    const cacheKey = [ accessTokenCache.prefix, appKey, userTax ].join('-');
+    const cache = await this.getCache(cacheKey);
+    if (cache) return cache;
+    const data = {
+      client_id: appKey,
+      client_secret: appSecret,
+      grant_type: grantType,
+    };
+    const { data: token } = await curl(authTokenUrl, { method: 'POST', data, dataType: 'json' });
+    if (token && !token.error) await this.setCache(cacheKey, token, accessTokenCache);
+    return token;
+  }
+
+  /**
+   * **服务商授权码方式获取令牌**
+   *
+   * ```js
+   * {
+   *  // 请求将自动被转换：
+   *  headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+   *  data: querystring.stringify(data),
+   * }
+   * ```
+   *
+   * @see https://open.nuonuo.com/#/dev-doc/auth-service
+   * @param {string} appKey         应用ID
+   * @param {string} appSecret      应用密钥
+   * @param {string} code           授权码
+   * @param {string} taxnum         用户税号
+   * @param {string} redirectUri    重定向地址
+   * @param {string} [grantType='authorization_code'] 授权方式
+   * @return {object} 令牌
+   * @memberof Nuonuo
+   */
+  async getIsvToken(appKey, appSecret, code, userTax, redirectUri, grantType = 'authorization_code') {
+    const { config, curl } = this;
+    const { authTokenUrl, accessTokenCache } = config;
+    const cacheKey = [ accessTokenCache.prefix, appKey, userTax ].join('-');
+    const cache = await this.getCache(cacheKey);
+    if (cache) return cache;
+    const data = {
+      client_id: appKey,
+      client_secret: appSecret,
+      code,
+      redirectUri,
+      grant_type: grantType,
+      taxNum: userTax,
+    };
+    const { data: token } = await curl(authTokenUrl, { method: 'POST', data, dataType: 'json' });
+    if (token && !token.error) await this.setCache(cacheKey, token, accessTokenCache);
+    return token;
+  }
+
+  /**
+   * **服务商刷新令牌方式获取令牌**
+   *
+   * @see https://open.nuonuo.com/#/dev-doc/auth-service
+   * @param {string} refreshToken 刷新令牌
+   * @param {string} appKey       应用ID
+   * @param {string} appSecret    应用密钥
+   * @param {string} [grantType='refresh_token'] 授权方式
+   * @return {object} 令牌
+   * @memberof Nuonuo
+   */
+  async refreshISVToken(refreshToken, appKey, appSecret, grantType = 'refresh_token') {
+    const { config, curl } = this;
+    const { authTokenUrl, accessTokenCache } = config;
+    const data = {
+      client_id: appKey,
+      client_secret: appSecret,
+      refresh_token: refreshToken,
+      grant_type: grantType,
+    };
+    const { data: token } = await curl(authTokenUrl, { method: 'POST', data, dataType: 'json' });
+    if (!token || token.error) return token;
+    const { oauthUser: { userName: userTax } } = token;
+    const cacheKey = [ accessTokenCache.prefix, appKey, userTax ].join('-');
+    await this.setCache(cacheKey, token, accessTokenCache);
+    return token;
+  }
+
+  /**
+   * **服务商OAuth2授权码重定向**
+   *
+   * 诺诺商家应用回调URL应通过路由指向此方法，
+   * 以`Egg.js`为例，路由表中增加一条：
+   *
+   * ```js
+   * router.get('/nuonuo/redirect', ctx => app.nuonuo.isvAuthRedirect(ctx));
+   * ```
+   *
+   * @see https://open.jss.com.cn/#/dev-doc/auth-service
+   * @param {object} ctx context，request、response以及其他
+   * @memberof Nuonuo
+   */
+  async isvAuthRedirect(ctx) {
+    const { config } = this;
+    const { query } = ctx.request;
+    const { code, taxNum } = query;
+    const { appKey, appSecret, redirectUri } = config;
+    const token = await this.getIsvToken(appKey, appSecret, code, taxNum, redirectUri);
+    ctx.body = (!token || token.error) ? token : 'success';
+  }
+
+  /**
    * **获取32位随机码**
    *
    * @returns {string}  32位随机码
@@ -83,71 +200,9 @@ class Nuonuo {
   getSign(path, appSecret, appKey, senid, nonce, body, timestamp) {
     const pieces = path.split('/');
     const signStr = `a=${pieces[3]}&l=${pieces[2]}&p=${pieces[1]}&k=${appKey}&i=${senid}&n=${nonce}&t=${timestamp}&f=${body}`;
-    const sign = encodeURIComponent(crypto.createHmac('sha1', appSecret).update(signStr).digest('base64'));
+    const sign = crypto.createHmac('sha1', appSecret).update(signStr).digest('base64').toString();
+    console.log(__filename, sign);
     return sign;
-  }
-
-  /**
-   * **商家获取令牌**
-   *
-   * @see https://open.nuonuo.com/#/dev-doc/auth-business
-   * @param {string} appKey     应用ID
-   * @param {string} appSecret  应用密钥
-   * @param {string} [grantType='client_credentials'] 授权方式
-   * @return {object} 令牌
-   * @memberof Nuonuo
-   */
-  async getMerchantToken(appKey, appSecret, grantType = 'client_credentials') {
-    const { config, curl } = this;
-    const { authUrl, accessTokenCache } = config;
-    const cacheKey = [accessTokenCache.prefix, appKey].join('');
-    const cache = await this.getCache(cacheKey);
-    if (cache) return cache;
-    const { data: token } = await curl(authUrl, {
-      method: 'POST',
-      dataType: 'json',
-      data: {
-        client_id: appKey,
-        client_secret: appSecret,
-        grant_type: grantType,
-      },
-    });
-    if (!token.error) await this.setCache(cacheKey, token, accessTokenCache);
-    return token;
-  }
-
-  /**
-   * **服务商授权码方式获取令牌**
-   *
-   * @see https://open.nuonuo.com/#/dev-doc/auth-service
-   * @param {string} appKey         应用ID
-   * @param {string} appSecret      应用密钥
-   * @param {string} code           授权码
-   * @param {string} taxnum         用户税号
-   * @param {string} redirectUri    重定向地址
-   * @param {string} [grantType='authorization_code'] 授权方式
-   * @return {object} 令牌
-   * @memberof Nuonuo
-   */
-  async getIsvToken(appKey, appSecret, code, taxnum, redirectUri, grantType = 'authorization_code') {
-    console.log(appKey, appSecret, code, taxnum, redirectUri, grantType);
-    return 'getIsvToken';
-  }
-
-  /**
-   * **服务商刷新令牌方式获取令牌**
-   *
-   * @see https://open.nuonuo.com/#/dev-doc/auth-service
-   * @param {string} refreshToken 刷新令牌
-   * @param {string} appKey       应用ID
-   * @param {string} appSecret    应用密钥
-   * @param {string} [grantType='refresh_token'] 授权方式
-   * @return {object} 令牌
-   * @memberof Nuonuo
-   */
-  async refreshISVToken(refreshToken, appKey, appSecret, grantType = 'refresh_token') {
-    console.log(refreshToken, appKey, appSecret, grantType);
-    return 'getIsvToken';
   }
 
   /**
@@ -160,14 +215,16 @@ class Nuonuo {
    * @param {string} accessToken  令牌
    * @param {string} userTax      用户税号
    * @param {string} method       API方法名
-   * @param {string} content      私有请求参数
+   * @param {object} content      私有请求参数
    * @return {object} 响应
    * @memberof Nuonuo
    */
   async sendRequest(requestUrl, senid, appKey, appSecret, accessToken, userTax, method, content) {
-    const timestamp = Date.now(); // 时间戳
+    const timestamp = Math.round(Date.now()/1000); // 时间戳
     const nonce = Math.floor(Math.random(1000000000)); // 随机正整数
-    const sign = this.getSign(appSecret, appKey, senid, nonce, content, timestamp); // 签名
+    const { pathname } = new URL(requestUrl);
+    const contentString = JSON.stringify(content);
+    const sign = this.getSign(pathname, appSecret, appKey, senid, nonce, contentString, timestamp); // 签名
     const url = `${requestUrl}?senid=${senid}&nonce=${nonce}&timestamp=${timestamp}&appkey=${appKey}`;
     const headers = {
       'Content-type': 'application/json',
@@ -179,7 +236,7 @@ class Nuonuo {
     const result = this.curl(url, {
       method: 'POST',
       headers,
-      data: content, // NOTE: Will be stringify automatically.
+      data: JSON.stringify(content), // NOTE: Will be stringify automatically.
       dataType: 'json',
     });
     return result;
@@ -191,13 +248,15 @@ class Nuonuo {
    * @see https://open.nuonuo.com/#/api-doc/common-api?id=100007
    * @param {string} method     API方法名
    * @param {string} content    私有请求参数
+   * @param {string} userTax    用户税号
    * @return {object}           响应输出
    * @memberof Nuonuo
    */
-  async exec(method, content) {
-    const { apiUrl, appKey, appSecret, userTax, isv } = this.config;
-    const senid = this.senid();
+  async exec(method, content, userTax) {
+    const { apiUrl, appKey, appSecret, isv } = this.config;
     const accessToken = isv ? await this.getIsvToken() : await this.getMerchantToken();
+    if(!userTax) userTax = this.config.userTax;
+    const senid = this.senid();
     const result = await this.sendRequest(apiUrl, senid, appKey, appSecret, accessToken, userTax, method, content);
     return result;
   }

@@ -20,15 +20,17 @@ npm run test
 
 ```js
 const config = {
-  authUrl: 'https://open.nuonuo.com/accessToken',
+  isv: false,
+  redirectUri: 'http://localhost:7001/nuonuo/redirect', // if isv is true
+  authTokenUrl: 'https://open.nuonuo.com/accessToken',
+  authCodeUrl: 'https://open.nuonuo.com/authorize',
   apiUrl: 'https://sandbox.nuonuocs.cn/open/v1/services',
   appKey: 'sandbox',
   appSecret: 'sandbox',
   userTax: 'user-tax-number',
-  isv: false,
   accessTokenCache: {
     store: 'memory',
-    prefix: 'nuonuo_',
+    prefix: 'nuonuo',
     ttl: 86400, // 24 hours
     quota: [ 50, 2592000 ], // 50 times / 30 days
   },
