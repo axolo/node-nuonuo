@@ -1,6 +1,6 @@
 # node-nuonuo
 
-[Nuonuo] open api for Node.js.
+[Nuonuo] open API for Node.js.
 
 ## install
 
@@ -28,7 +28,7 @@ const config = {
   userTax: 'user-tax-number', // dynamic if isv is true
   okCode: '0000',
   accessTokenCache: {
-    store: 'memory', // if use Redis see cache-manager
+    store: 'memory', // config cache-manager if use Redis
     prefix: 'nuonuo',
     ttl: 86400, // 24 hours
     quota: [ 50, 2592000 ], // 50 times / 30 days
@@ -40,24 +40,28 @@ const config = {
 
 ### construct(config)
 
-#### params
+| params |  type  | description |
+| ------ | ------ | ----------- |
+| config | object | API config  |
 
-- config: Nuonuo invoice config
-
-#### return
+> return
 
 Nuonuo instance
 
 ### exec(method, content, userTax)
 
-#### params
+| params  |  type  |                       description                        |
+| ------- | ------ | -------------------------------------------------------- |
+| method  | string | [Nuonuo] method name                                       |
+| content | object | [Nuonuo] private params, JSON.stringify automatic           |
+| userTax | string | [Nuonuo] userTax, required to ISV and optional to Merchant |
 
-- method: Nuonuo API method name
-- content: Nuouo private params, JSON.stringify automatic
-- userTax: Nuonuo userTax, required to ISV and optional to Merchant
+> return
 
-#### return
+Nuonuo open API response
 
-Nuonuo response
+## TODO
+
+throw Exception
 
 [Nuonuo]: https://open.nuonuo.com/

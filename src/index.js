@@ -9,6 +9,7 @@ class Nuonuo {
   /**
    * **诺诺Open API构造函数**
    *
+   * @todo throw Exception
    * @param {object} config 配置
    * @memberof Nuonuo
    */
